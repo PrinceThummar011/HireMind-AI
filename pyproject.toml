@@ -1,0 +1,17 @@
+[project]
+name = "ai-job-application-assistant"
+version = "0.1.0"
+description = "AI Job Application Assistant with Streamlit + Groq + LangGraph"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+	"streamlit>=1.40.0",
+	"langchain>=0.3.0",
+	"langchain-groq>=0.2.0",
+	"langgraph>=0.2.0",
+	"langchain-core>=0.3.0",
+	"pymupdf>=1.24.0",
+	"fastmcp>=0.2.0",
+	"python-dotenv>=1.0.0",
+	"pydantic>=2.8.0",
+]

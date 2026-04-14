@@ -1,0 +1,9 @@
+streamlit
+langchain
+langchain-groq
+langgraph
+langchain-core
+pymupdf
+fastmcp
+python-dotenv
+pydantic
