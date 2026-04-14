@@ -1,31 +1,35 @@
-# 🧠 AI Job Application Assistant
+# AI Job Application Assistant
 
-Professional multi-agent job application assistant built with Streamlit, Groq, LangChain, LangGraph, and FastMCP.
+An AI-powered job application assistant that helps you analyze a resume against a job description, estimate ATS compatibility, identify skill gaps, and generate tailored application materials.
 
-## ✨ Features
+## Overview
 
-- 📄 Resume upload (PDF)
-- 📋 Job description input
-- 🎯 ATS score (match percentage)
-- ✍️ Resume rewriting tailored to JD
-- 💌 Cover letter generation
-- 🔍 Skill gap analysis with learning plan
-- 📊 Keyword analysis (matched vs missing)
-- ⚡ Fast LLM responses using Groq
+This project combines Streamlit, Groq, LangChain, LangGraph, and FastMCP to create a multi-agent workflow for job application support. Upload a resume in PDF format, paste a job description, and receive a structured analysis with actionable outputs.
 
-## 🏗️ Tech Stack
+## Key Features
+
+- Resume upload and PDF text extraction
+- ATS match scoring with matched and missing keywords
+- Skill gap analysis with a learning plan
+- Tailored resume rewriting
+- Cover letter generation
+- Fast LLM responses using Groq
+
+## Tech Stack
 
 - UI: Streamlit
-- LLM: Groq (`llama-3.3-70b-versatile` by default)
 - Orchestration: LangGraph
-- Prompting/chains: LangChain
-- Tool server: FastMCP
+- LLM Provider: Groq
+- Prompting and chains: LangChain
+- Tooling: FastMCP
 - PDF parsing: PyMuPDF
 
-## 📁 Project Structure
+## Project Structure
 
-ai-job-assistant/
+```text
+AI Job Application Assistant/
 ├── app.py
+├── main.py
 ├── graph/
 │   └── job_graph.py
 ├── agents/
@@ -37,53 +41,93 @@ ai-job-assistant/
 │   └── mcp_tools.py
 ├── utils/
 │   └── pdf_parser.py
-├── .env
 ├── requirements.txt
+├── pyproject.toml
 └── README.md
+```
 
-## 🚀 Local Setup
+## Prerequisites
 
-1. Create and activate a virtual environment
-2. Install dependencies
-3. Add your Groq API key
-4. Run Streamlit
+- Python 3.10 or later
+- A Groq API key
+- A PDF resume file
+
+## Installation
+
+1. Clone the repository and open the project folder.
+2. Install dependencies using [uv](https://docs.astral.sh/uv/).
 
 Example:
 
-- Install dependencies from `requirements.txt`
-- Set `GROQ_API_KEY` in `.env`
-- Start app with Streamlit using `app.py`
+```bash
+# Sync dependencies from pyproject.toml
+uv sync
+```
 
-## 🔐 Environment Variables
+Alternatively, if you are using the `requirements.txt`:
 
-Create `.env` in project root:
+```bash
+uv venv
+source .venv/bin/activate
+uv pip install -r requirements.txt
+```
 
+## Configuration
+
+Create a `.env` file in the project root and add your Groq credentials:
+
+```env
 GROQ_API_KEY=your_groq_api_key_here
 GROQ_MODEL=llama-3.3-70b-versatile
+```
 
-## 🔄 LangGraph Flow
+The model name is optional, but this is the default configured by the project.
 
-1. Parse resume PDF
-2. ATS scorer agent
-3. Skill gap agent
-4. Resume rewriter agent
-5. Cover letter agent
-6. Display all outputs in Streamlit
+## Usage
 
-## 🌐 Streamlit Cloud Deployment
+Run the Streamlit app:
 
-1. Push project to GitHub
-2. Open Streamlit Community Cloud
-3. Connect repository
-4. Add `GROQ_API_KEY` in Secrets
-5. Deploy
+```bash
+uv run streamlit run app.py
+```
 
-## 🧩 MCP Tools
+Then:
 
-`tools/mcp_tools.py` includes FastMCP tools:
+1. Upload a resume PDF.
+2. Paste the target job description.
+3. Click Run AI Analysis.
+4. Review the ATS score, keyword analysis, skill gaps, resume draft, and cover letter.
+
+## Workflow
+
+The LangGraph workflow is designed to:
+
+1. Extract text from the uploaded resume.
+2. Run ATS scoring and keyword analysis.
+3. Identify missing skills and produce a learning plan.
+4. Generate a tailored resume.
+5. Generate a tailored cover letter.
+6. Present all outputs in the Streamlit UI.
+
+## MCP Tools
+
+The `tools/mcp_tools.py` module exposes FastMCP tools used by the assistant, including:
 
 - `keyword_analysis(text, top_n)`
 - `ats_score(resume_text, job_description)`
 
-Run MCP server from project root by launching the module script.
+## Deployment
+
+To deploy on Streamlit Community Cloud:
+
+1. Push the repository to GitHub.
+2. Connect the repository in Streamlit Community Cloud.
+3. Add `GROQ_API_KEY` to Secrets.
+4. Deploy the app.
+
+## Notes
+
+- `app.py` is the main Streamlit entrypoint.
+- `main.py` is a lightweight helper that points to the Streamlit launch command.
+- Keep your resume PDF text-based for best extraction results.
 
