@@ -79,9 +79,11 @@ Create a `.env` file in the project root and add your Groq credentials:
 ```env
 GROQ_API_KEY=your_groq_api_key_here
 GROQ_MODEL=llama-3.3-70b-versatile
+TAVILY_API_KEY=your_tavily_api_key_here
 ```
 
 The model name is optional, but this is the default configured by the project.
+`TAVILY_API_KEY` is optional and enables live web resource recommendations in the skill-gap learning plan.
 
 ## Usage
 

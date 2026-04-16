@@ -108,6 +108,25 @@ def _render_results(results: dict[str, Any]) -> None:
         for skill in skill_gap.get("missing_skills", []):
             st.write(f"- {skill}")
 
+        resources = skill_gap.get("resource_recommendations", [])
+        st.markdown("### Recommended Resources")
+        if resources:
+            for item in resources[:10]:
+                title = item.get("title", "Resource")
+                url = item.get("url", "")
+                source = item.get("source", "web")
+                summary = item.get("summary", "")
+
+                if url:
+                    st.markdown(f"- [{title}]({url}) ({source})")
+                else:
+                    st.markdown(f"- {title} ({source})")
+
+                if summary:
+                    st.caption(summary)
+        else:
+            st.info("No live resources found. Add TAVILY_API_KEY to enable web-based learning resources.")
+
         st.markdown("### Learning Plan")
         st.write(skill_gap.get("learning_plan", "No learning plan generated."))
 

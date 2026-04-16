@@ -7,3 +7,5 @@ pymupdf
 fastmcp
 python-dotenv
 pydantic
+langchain-community
+tavily-python
