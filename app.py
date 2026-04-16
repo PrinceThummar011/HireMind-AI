@@ -10,12 +10,70 @@ from utils.pdf_parser import extract_text_from_uploaded_pdf
 
 def _render_keyword_list(title: str, items: list[str], color: str) -> None:
     st.markdown(f"### {title}")
-    if not items:
+    cleaned: list[str] = []
+    seen: set[str] = set()
+    for item in items:
+        normalized = str(item).strip().lower()
+        if not normalized or normalized in seen:
+            continue
+        seen.add(normalized)
+        cleaned.append(normalized)
+
+    cleaned = cleaned[:24]
+
+    if not cleaned:
         st.info("No items found.")
         return
 
-    chips = " ".join([f":{color}[`{item}`]" for item in items])
+    chips = " ".join([f":{color}[`{item}`]" for item in cleaned])
     st.markdown(chips)
+
+
+def _render_advanced_keyword_analysis(ats_result: dict[str, Any]) -> None:
+    priority_missing = ats_result.get("priority_missing_keywords", [])
+    keyword_analysis = ats_result.get("keyword_analysis", {})
+    coverage_by_category = keyword_analysis.get("coverage_by_category", {})
+    top_keywords = keyword_analysis.get("top_keywords", [])
+    recommendations = ats_result.get("recommendations", [])
+
+    if priority_missing:
+        st.markdown("### Priority Missing Keywords")
+        st.warning(
+            ", ".join(priority_missing[:12])
+        )
+
+    if coverage_by_category:
+        st.markdown("### Coverage by Category")
+        coverage_rows = []
+        for category, details in coverage_by_category.items():
+            coverage_rows.append(
+                {
+                    "category": category.replace("_", " ").title(),
+                    "coverage_%": details.get("coverage", 0),
+                    "matched": len(details.get("matched", [])),
+                    "missing": len(details.get("missing", [])),
+                }
+            )
+        coverage_rows = sorted(coverage_rows, key=lambda row: row["coverage_%"])
+        st.dataframe(coverage_rows, use_container_width=True, hide_index=True)
+
+    if top_keywords:
+        st.markdown("### Top JD Keywords (Weighted)")
+        top_rows = [
+            {
+                "keyword": item.get("keyword", ""),
+                "category": item.get("category", "other"),
+                "importance_score": item.get("importance_score", 0),
+                "frequency": item.get("frequency", 0),
+            }
+            for item in top_keywords[:20]
+        ]
+        st.dataframe(top_rows, use_container_width=True, hide_index=True)
+
+    if recommendations:
+        st.markdown("### ATS Recommendations")
+        for recommendation in recommendations:
+            st.write(f"- {recommendation}")
 
 
 def _render_results(results: dict[str, Any]) -> None:
@@ -42,6 +100,8 @@ def _render_results(results: dict[str, Any]) -> None:
             _render_keyword_list("Matched Keywords", matched_keywords, "green")
         with col2:
             _render_keyword_list("Missing Keywords", missing_keywords, "red")
+
+        _render_advanced_keyword_analysis(ats_result)
 
     with tab2:
         st.markdown("### Missing Skills")

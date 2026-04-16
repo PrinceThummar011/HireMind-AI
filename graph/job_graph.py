@@ -46,6 +46,7 @@ def _skill_gap_node(state: JobAssistantState) -> JobAssistantState:
     skill_gap = skill_gap_agent.run(
         missing_keywords=missing_keywords,
         job_description=state.get("job_description", ""),
+        ats_result=ats_result,
         llm=llm,
     )
     return {"skill_gap": skill_gap}
