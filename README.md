@@ -85,6 +85,13 @@ TAVILY_API_KEY=your_tavily_api_key_here
 The model name is optional, but this is the default configured by the project.
 `TAVILY_API_KEY` is optional and enables live web resource recommendations in the skill-gap learning plan.
 
+**Get API keys quickly**
+
+- **Groq API key:** create an account and get an API key from Groq. Visit: https://www.groq.ai/ and see the docs at https://docs.groq.ai/ to generate your `GROQ_API_KEY`.
+- **Tavily API key:** sign up for Tavily to enable web search resource recommendations. Visit: https://tavily.ai/ (or https://www.tavily.ai/) and copy `TAVILY_API_KEY` into your `.env` when available.
+
+Paste both keys into your `.env` and restart the app.
+
 ## Usage
 
 Run the Streamlit app:
