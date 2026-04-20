@@ -1,4 +1,5 @@
 import os
+from functools import lru_cache
 from typing import Any, TypedDict
 
 from langchain_groq import ChatGroq
@@ -25,6 +26,11 @@ def _build_llm() -> ChatGroq | None:
         return None
 
     model_name = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+    return _build_llm_cached(api_key=api_key, model_name=model_name)
+
+
+@lru_cache(maxsize=8)
+def _build_llm_cached(api_key: str, model_name: str) -> ChatGroq:
     return ChatGroq(model=model_name, temperature=0.2, api_key=api_key)
 
 
@@ -77,6 +83,7 @@ def _cover_letter_node(state: JobAssistantState) -> JobAssistantState:
     return {"cover_letter": cover_letter}
 
 
+@lru_cache(maxsize=1)
 def build_job_graph():
     graph = StateGraph(JobAssistantState)
 

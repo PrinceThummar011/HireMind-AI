@@ -1,4 +1,5 @@
 import os
+import logging
 from typing import Any
 
 import streamlit as st
@@ -6,6 +7,9 @@ from dotenv import load_dotenv
 
 from graph.job_graph import run_job_assistant
 from utils.pdf_parser import extract_text_from_uploaded_pdf
+
+
+logger = logging.getLogger(__name__)
 
 
 def _render_keyword_list(title: str, items: list[str], color: str) -> None:
@@ -186,7 +190,10 @@ def main() -> None:
             try:
                 results = run_job_assistant(resume_text=resume_text, job_description=job_description)
             except Exception as exc:
-                st.exception(exc)
+                logger.exception("Job assistant workflow failed: %s", exc)
+                st.error("Something went wrong while running the analysis. Please try again in a moment.")
+                with st.expander("Technical details"):
+                    st.text(str(exc))
                 return
 
         _render_results(results)
