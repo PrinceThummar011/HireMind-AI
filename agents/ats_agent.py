@@ -233,6 +233,29 @@ ALIASES: dict[str, str] = {
     "k8s": "kubernetes",
 }
 
+SYNONYM_CANONICAL: dict[str, str] = {
+    "communicate": "communication",
+    "communicating": "communication",
+    "communications": "communication",
+    "communication skills": "communication",
+    "stakeholder communications": "stakeholder management",
+    "statistical": "statistics",
+    "statistically": "statistics",
+    "experiment": "experimentation",
+    "experiments": "experimentation",
+    "visualisation": "data visualization",
+    "visualization": "data visualization",
+    "data visualisation": "data visualization",
+    "machine-learning": "machine learning",
+    "large language model": "llm",
+    "gen ai": "generative ai",
+    "generative artificial intelligence": "generative ai",
+    "pipelining": "data pipelines",
+    "etl pipeline": "data pipelines",
+    "etl pipelines": "data pipelines",
+    "warehousing": "data warehousing",
+}
+
 REQUIRED_CUES = (
     "must",
     "required",
@@ -278,6 +301,42 @@ def _normalize_phrase(text: str) -> str:
     return text
 
 
+def _simple_lemma(token: str) -> str:
+    if not token or not token.isalpha() or len(token) <= 3:
+        return token
+
+    if token.endswith("ies") and len(token) > 4:
+        return token[:-3] + "y"
+    if token.endswith("ing") and len(token) > 5:
+        return token[:-3]
+    if token.endswith("ed") and len(token) > 4:
+        return token[:-2]
+    if token.endswith("es") and len(token) > 4:
+        return token[:-2]
+    if token.endswith("s") and len(token) > 3 and not token.endswith("ss"):
+        return token[:-1]
+    return token
+
+
+def _canonicalize_for_matching(text: str) -> str:
+    normalized = _normalize_phrase(text)
+    normalized = SYNONYM_CANONICAL.get(normalized, normalized)
+
+    if normalized in ALIASES:
+        normalized = ALIASES[normalized]
+
+    parts = normalized.split()
+    if not parts:
+        return normalized
+
+    lemmatized_parts = [_simple_lemma(part) for part in parts]
+    lemmatized_phrase = " ".join(lemmatized_parts)
+
+    lemmatized_phrase = SYNONYM_CANONICAL.get(lemmatized_phrase, lemmatized_phrase)
+    lemmatized_phrase = ALIASES.get(lemmatized_phrase, lemmatized_phrase)
+    return lemmatized_phrase
+
+
 def _phrase_pattern(phrase: str) -> str:
     escaped = re.escape(phrase)
     escaped = escaped.replace(r"\ ", r"\s+")
@@ -291,9 +350,7 @@ def _count_phrase_occurrences(text: str, phrase: str) -> int:
 
 
 def _canonical_keyword(keyword: str) -> str:
-    normalized = _normalize_phrase(keyword)
-    normalized = ALIASES.get(normalized, normalized)
-    return normalized
+    return _canonicalize_for_matching(keyword)
 
 
 def _all_skill_terms() -> set[str]:
@@ -523,7 +580,14 @@ def compute_ats_score(resume_text: str, job_description: str) -> ATSResult:
 
     matched = sorted(core_jd_set & resume_set)
     missing = sorted(core_jd_set - resume_set)
-    score = int(round((len(matched) / len(core_jd_set)) * 100))
+
+    importance_by_keyword = {
+        item["keyword"]: max(int(item.get("importance_score", 1)), 1)
+        for item in ranked_jd_keywords
+    }
+    total_weight = sum(importance_by_keyword.get(keyword, 1) for keyword in core_jd_set)
+    matched_weight = sum(importance_by_keyword.get(keyword, 1) for keyword in matched)
+    score = int(round((matched_weight / total_weight) * 100)) if total_weight else 0
 
     priority_missing_keywords = [
         item["keyword"]
@@ -536,8 +600,13 @@ def compute_ats_score(resume_text: str, job_description: str) -> ATSResult:
     keyword_analysis = {
         "top_keywords": ranked_jd_keywords[:30],
         "coverage_by_category": coverage,
-        "method": "hybrid-rule-based (taxonomy + phrase frequency + requirement context weighting)",
+        "method": "hybrid-rule-based (taxonomy + phrase frequency + requirement context weighting + synonym/lemma canonicalization + weighted matching)",
         "core_keywords": sorted(core_jd_set),
+        "weighting": {
+            "total_weight": total_weight,
+            "matched_weight": matched_weight,
+            "weighted_match_percent": score,
+        },
     }
 
     recommendations = _build_recommendations(
