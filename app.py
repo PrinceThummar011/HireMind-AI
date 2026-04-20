@@ -11,6 +11,46 @@ from utils.pdf_parser import extract_text_from_uploaded_pdf
 
 logger = logging.getLogger(__name__)
 
+MAX_RESUME_CHARS = 18_000
+MAX_JOB_DESCRIPTION_CHARS = 12_000
+CHUNK_SIZE = 4_000
+MAX_CHUNKS = 5
+
+
+def _truncate_with_chunks(
+    text: str,
+    *,
+    max_chars: int,
+    chunk_size: int = CHUNK_SIZE,
+    max_chunks: int = MAX_CHUNKS,
+) -> tuple[str, bool, int, int]:
+    normalized = (text or "").strip()
+    original_len = len(normalized)
+    if original_len <= max_chars:
+        return normalized, False, original_len, original_len
+
+    chunks = [normalized[i : i + chunk_size] for i in range(0, original_len, chunk_size)]
+
+    kept_chunks: list[str] = []
+    used_chars = 0
+    for chunk in chunks[:max_chunks]:
+        remaining = max_chars - used_chars
+        if remaining <= 0:
+            break
+
+        if len(chunk) <= remaining:
+            kept_chunks.append(chunk)
+            used_chars += len(chunk)
+        else:
+            kept_chunks.append(chunk[:remaining])
+            used_chars += remaining
+            break
+
+    truncated_text = "\n\n".join(kept_chunks).strip()
+    truncated_len = len(truncated_text)
+    was_truncated = truncated_len < original_len
+    return truncated_text, was_truncated, original_len, truncated_len
+
 
 def _render_keyword_list(title: str, items: list[str], color: str) -> None:
     st.markdown(f"### {title}")
@@ -186,9 +226,30 @@ def main() -> None:
             st.error("Could not extract text from the uploaded PDF.")
             return
 
+        safe_job_description, jd_truncated, jd_original_len, jd_truncated_len = _truncate_with_chunks(
+            job_description,
+            max_chars=MAX_JOB_DESCRIPTION_CHARS,
+        )
+        safe_resume_text, resume_truncated, resume_original_len, resume_truncated_len = _truncate_with_chunks(
+            resume_text,
+            max_chars=MAX_RESUME_CHARS,
+        )
+
+        if jd_truncated:
+            st.warning(
+                f"Job description is very large, so only the first {jd_truncated_len:,} of {jd_original_len:,} characters are used for AI analysis."
+            )
+        if resume_truncated:
+            st.warning(
+                f"Resume text is very large, so only the first {resume_truncated_len:,} of {resume_original_len:,} characters are used for AI analysis."
+            )
+
         with st.spinner("Running multi-agent workflow..."):
             try:
-                results = run_job_assistant(resume_text=resume_text, job_description=job_description)
+                results = run_job_assistant(
+                    resume_text=safe_resume_text,
+                    job_description=safe_job_description,
+                )
             except Exception as exc:
                 logger.exception("Job assistant workflow failed: %s", exc)
                 st.error("Something went wrong while running the analysis. Please try again in a moment.")
