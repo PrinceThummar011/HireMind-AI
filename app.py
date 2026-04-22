@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 
 from graph.job_graph import run_job_assistant
 from utils.pdf_parser import extract_text_from_uploaded_pdf
+from utils.pdf_generator import create_pdf_from_text
 
 
 logger = logging.getLogger(__name__)
@@ -177,19 +178,19 @@ def _render_results(results: dict[str, Any]) -> None:
     with tab3:
         st.text_area("Tailored Resume", rewritten_resume, height=420)
         st.download_button(
-            "Download Rewritten Resume",
-            data=rewritten_resume,
-            file_name="rewritten_resume.txt",
-            mime="text/plain",
+            "Download Rewritten Resume (PDF)",
+            data=create_pdf_from_text(rewritten_resume),
+            file_name="rewritten_resume.pdf",
+            mime="application/pdf",
         )
 
     with tab4:
         st.text_area("Tailored Cover Letter", cover_letter, height=420)
         st.download_button(
-            "Download Cover Letter",
-            data=cover_letter,
-            file_name="cover_letter.txt",
-            mime="text/plain",
+            "Download Cover Letter (PDF)",
+            data=create_pdf_from_text(cover_letter),
+            file_name="cover_letter.pdf",
+            mime="application/pdf",
         )
 
 
