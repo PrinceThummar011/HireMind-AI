@@ -209,9 +209,13 @@ def main() -> None:
     uploaded_resume = st.file_uploader("Upload Resume (PDF)", type=["pdf"])
     job_description = st.text_area("Paste Job Description", height=260)
 
+    if "results" not in st.session_state:
+        st.session_state.results = None
+
     run_clicked = st.button("Run AI Analysis", type="primary")
 
     if run_clicked:
+        st.session_state.results = None
         if not uploaded_resume:
             st.error("Please upload a resume PDF.")
             return
@@ -250,6 +254,7 @@ def main() -> None:
                     resume_text=safe_resume_text,
                     job_description=safe_job_description,
                 )
+                st.session_state.results = results
             except Exception as exc:
                 logger.exception("Job assistant workflow failed: %s", exc)
                 st.error("Something went wrong while running the analysis. Please try again in a moment.")
@@ -257,7 +262,8 @@ def main() -> None:
                     st.text(str(exc))
                 return
 
-        _render_results(results)
+    if st.session_state.results:
+        _render_results(st.session_state.results)
 
 
 if __name__ == "__main__":
