@@ -8,7 +8,6 @@ class ResumeRewriterAgent:
         resume_text: str,
         job_description: str,
         missing_keywords: list[str],
-        resume_page_count: int = 1,
         llm: BaseChatModel | None = None,
     ) -> str:
         if not llm:
@@ -21,11 +20,6 @@ class ResumeRewriterAgent:
                 "Original resume text:\n"
                 f"{resume_text}"
             )
-
-        # Calculate a reasonable target length based on page count.
-        target_length_desc = f"roughly {resume_page_count} page(s)"
-        if resume_page_count == 1:
-            target_length_desc = "exactly 1 page (extremely concise and impactful)"
 
         prompt = f"""
 You are an expert resume writer specializing in modern, high-impact professional resumes.
