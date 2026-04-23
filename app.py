@@ -175,10 +175,10 @@ def _render_results(results: dict[str, Any]) -> None:
         st.write(skill_gap.get("learning_plan", "No learning plan generated."))
 
     with tab3:
-        st.text_area("Tailored Resume", rewritten_resume, height=420)
+        st.code(rewritten_resume, language="markdown")
 
     with tab4:
-        st.text_area("Tailored Cover Letter", cover_letter, height=420)
+        st.code(cover_letter, language="markdown")
 
 
 def main() -> None:
