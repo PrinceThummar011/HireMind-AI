@@ -38,3 +38,4 @@ Candidate Resume:
 
         response = llm.invoke([HumanMessage(content=prompt)])
         return getattr(response, "content", str(response))
+        return getattr(response, "content", str(response))

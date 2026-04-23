@@ -8,6 +8,7 @@ class ResumeRewriterAgent:
         resume_text: str,
         job_description: str,
         missing_keywords: list[str],
+        resume_page_count: int = 1,
         llm: BaseChatModel | None = None,
     ) -> str:
         if not llm:
@@ -21,15 +22,25 @@ class ResumeRewriterAgent:
                 f"{resume_text}"
             )
 
+        # Calculate a reasonable target length based on page count.
+        target_length_desc = f"roughly {resume_page_count} page(s)"
+        if resume_page_count == 1:
+            target_length_desc = "exactly 1 page (extremely concise and impactful)"
+
         prompt = f"""
-You are an expert resume writer.
-Rewrite the resume to align with the target job description.
+You are an expert resume writer specializing in modern, high-impact professional resumes.
+Rewrite the resume to align perfectly with the target job description.
 
 Rules:
-- Keep it truthful: do not invent experience, degrees, or companies.
-- Improve clarity, impact, and ATS keyword alignment.
-- Preserve professional tone.
-- Output in clean plain text format.
+- **PRESERVE ALL SECTIONS**: Do NOT delete any sections from the original resume. Keep all the sections the user originally had (e.g., Summary, Experience, Education, Projects, Certifications).
+- **ENHANCE, DO NOT RESTRUCTURE**: Your job is to improve the wording, grammar, and impact of the existing content. Do NOT completely restructure the resume or enforce a specific template if the user didn't have one.
+- **ADD SKILLS IF NECESSARY**: If the job description requires certain skills that the user is missing, you may carefully add them to the "Skills" section (or create a "Skills" section if none exists), provided they fit the user's background.
+- **ATS OPTIMIZATION**: Weave the provided keywords naturally into the existing bullet points and summary.
+- **FORMATTING**: Use a clean, professional Markdown-style format (`###` for headers, `*` for bullets).
+- **IMPACT**: Enhance existing bullet points with action verbs and quantify achievements where possible.
+- **NO PLACEHOLDERS OR NOTES**: NEVER add meta-comments like "Note: Added skills" or "No experience provided". Just output the final, polished resume text.
+- **TRUTHFULNESS**: Do NOT invent new job experiences, degrees, or companies.
+- **PRESERVE PERSONAL DATA**: Keep name, email, phone, and links exactly as they are.
 
 Job Description:
 {job_description}
@@ -37,7 +48,7 @@ Job Description:
 Keywords to emphasize if relevant:
 {", ".join(missing_keywords[:20]) if missing_keywords else "None"}
 
-Resume:
+Original Resume:
 {resume_text}
 """.strip()
 
